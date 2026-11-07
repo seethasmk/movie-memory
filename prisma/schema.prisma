@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+//each signed-in user
+model User {
+  id            String    @id @default(cuid()) //unique auto-generated ID
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  favoriteMovie String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  accounts      Account[] //linked login providers
+  sessions      Session[] //active logins
+  facts         Fact[] //generated movie facts
+}
+
+//generated movie facts
+model Fact {
+  id        String   @id @default(cuid())
+  userId    String //belongs to the user
+  movie     String
+  text      String
+  createdAt DateTime @default(now()) //used for 60s cache
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, movie, createdAt(sort: Desc)]) //fast latest fact lookup
+}
+
+//google login link per user
+model Account {
+  userId            String
+  type              String //login type
+  provider          String
+  providerAccountId String //user's google ID
+  access_token      String?
+  refresh_token     String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+}
+
+//active logins
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
