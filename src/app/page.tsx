@@ -1,10 +1,17 @@
-import { Playfair_Display, Inter } from "next/font/google";
-import { signIn } from "@/auth";
+import { auth, signIn } from "@/auth";
+import { redirect } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { serif, sans } from "@/lib/fonts";
 
-const serif = Playfair_Display({ subsets: ["latin"], weight: ["600"] });
-const sans = Inter({ subsets: ["latin"] });
+// Landing page with Google sign in
+export default async function Home() {
+  // Logged in? Send to onboarding or dashboard
+  const session = await auth();
+  if (session?.user?.id) {
+    const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+    redirect(user?.favoriteMovie ? "/dashboard" : "/onboarding");
+  }
 
-export default function Home() {
   return (
     <main
       className={`${sans.className} flex min-h-screen flex-col items-center justify-center bg-black text-white`}
@@ -18,7 +25,7 @@ export default function Home() {
       <form
         action={async () => {
           "use server";
-          await signIn("google", { redirectTo: "/dashboard" });
+          await signIn("google", { redirectTo: "/" });
         }}
       >
         <button className="mt-10 rounded-full border border-white px-8 py-3 text-sm tracking-wide transition hover:bg-white hover:text-black">
