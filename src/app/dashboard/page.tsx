@@ -1,6 +1,7 @@
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getFact } from "@/lib/facts";
 import { serif, sans } from "@/lib/fonts";
 
 // User dashboard (login required)
@@ -13,6 +14,16 @@ export default async function Dashboard() {
   if (!user?.favoriteMovie) redirect("/onboarding");
 
   const displayName = user.name ?? "Movie Lover";
+
+  // Get a fun fact (show a friendly message if it fails)
+  let factText: string | null = null;
+  try {
+    const fact = await getFact(user.id);
+    factText = fact.text;
+  } catch(err) {
+    console.error("Fact generation failed:", err);
+    factText = null;
+  }
 
   return (
     <main className={`${sans.className} min-h-screen bg-black text-white`}>
@@ -32,7 +43,7 @@ export default async function Dashboard() {
       </header>
 
       {/* Profile */}
-      <section className="mx-auto mt-20 flex max-w-xl flex-col items-center text-center">
+      <section className="mx-auto mt-20 flex max-w-xl flex-col items-center px-6 pb-20 text-center">
         {user.image ? (
           <img src={user.image} alt={displayName} className="h-24 w-24 rounded-full border border-neutral-800 object-cover" />
         ) : (
@@ -48,6 +59,14 @@ export default async function Dashboard() {
         {/* Favorite movie */}
         <p className="mt-12 text-xs uppercase tracking-[0.3em] text-neutral-500">Favorite movie</p>
         <p className={`${serif.className} mt-3 text-3xl`}>{user.favoriteMovie}</p>
+
+        {/* Fun fact */}
+        <div className="mt-12 w-full rounded-2xl border border-neutral-800 p-8">
+          <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">Fun fact</p>
+          <p className="mt-4 leading-relaxed text-neutral-200">
+            {factText ?? "We couldn't fetch a fun fact right now. Please try again shortly."}
+          </p>
+        </div>
       </section>
     </main>
   );
