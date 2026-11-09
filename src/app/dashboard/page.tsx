@@ -45,7 +45,7 @@ export default async function Dashboard() {
       {/* Profile */}
       <section className="mx-auto mt-20 flex max-w-xl flex-col items-center px-6 pb-20 text-center">
         {user.image ? (
-          <img src={user.image} alt={displayName} className="h-24 w-24 rounded-full border border-neutral-800 object-cover" />
+          <img src={user.image} alt={displayName} referrerPolicy="no-referrer" className="h-24 w-24 rounded-full border border-neutral-800 object-cover" />
         ) : (
           <div className="flex h-24 w-24 items-center justify-center rounded-full border border-neutral-800 text-3xl">
             {displayName[0]}
